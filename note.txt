@@ -1,0 +1,27 @@
+Install FFmpeg go to this website for step-by-step guide:
+https://phoenixnap.com/kb/ffmpeg-windows
+
+Move patricipant data in one folder with a naming format "<Lastname>_<Firstname>",
+ex. "Rodelas_Pat"
+then under <Lastname_Firstname> folder, create 2 folders,
+name  it as "F" for front data
+and "S" for side data.
+Then move data according to its designated data folder..
+The output must be, <Lastname_Firstname>\<Angle>\<Exercise>\<Instance Number>\<Filename>:
+ex.
+Rodelas_Pat\F\HA\001\I_Rodelas_Pat_F_HA_001_Features.csv
+Rodelas_Pat\F\HA\001\I_Rodelas_Pat_F_HA_001_Final.csv
+Rodelas_Pat\F\HA\001\I_Rodelas_Pat_F_HA_001_KeypointCoordinates3D.csv
+Rodelas_Pat\F\HA\001\Rodelas_Pat_F_HA_001.mp4
+
+1. Install Python 3.12.1
+2. Run initialization.py
+3. Move all data folder into the data folder
+4. Run main.py
+
+main.py will rename csv and mp4 files with standard naming format,
+then it will remove audio from all mp4 files
+and change its filenames for shuffling.
+The lists of original filenames and new filenames will be stored in a csv file,
+the csv file will be saved under data\<Participant> folder.
+Data (mp4) for annotation will be stored under newData folder.

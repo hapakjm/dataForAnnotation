@@ -5,70 +5,66 @@ import random
 import pandas as pd
 
 os.system('cls')
-subprocess.call(shlex.split('pip freeze > requirements.txt'), shell=True)
+# subprocess.call(shlex.split('pip freeze > requirements.txt'), shell=True)
 
-def main():
-    old_filenames = []
-    new_filenames = []
-    directory = './.data'
-    saving_directory = './.newData'
-    participants_list = os.listdir(directory)
+def rename_files(data_directory):
+    for root, dirs, files in os.walk(data_directory, topdown=False):
+        root_to_list = root.split('\\')
+        if (len(root_to_list) < 5):
+            break
 
-    if not os.path.exists(saving_directory):
-            os.mkdir(saving_directory)
-    for participant in participants_list:
-        next_directory1 = '/' + participant
-        if not os.path.exists(saving_directory + next_directory1):
-            os.mkdir(saving_directory + next_directory1)
-        angle_list = os.listdir(directory + next_directory1)
+        for file in files:
+            if file.endswith('.csv'):
+                annotation = file.split('_')[0]
+                break
+            else:
+                annotation = ''
+        if annotation != '':
+            for file in files:
+                if file.endswith('.csv'):
+                    new_filename = f'{annotation}_{root_to_list[1]}_{root_to_list[2]}_{root_to_list[3]}_{root_to_list[4]}_{file.split('_')[-1]}'
+                else:
+                    new_filename = f'{annotation}_{root_to_list[1]}_{root_to_list[2]}_{root_to_list[3]}_{root_to_list[4]}.mp4'
+                old_path = os.path.join(root, file)
+                new_path = os.path.join(root, new_filename)
+                os.rename(old_path, new_path)
 
-        for angle in angle_list:
-            next_directory2 = next_directory1 + '/' + angle
-            if not os.path.exists(saving_directory + next_directory2):
-                os.mkdir(saving_directory + next_directory2)
-            exercise_list = os.listdir(directory + next_directory2)
 
-            for exercise in exercise_list:
-                next_directory3 = next_directory2 + '/' + exercise
-                if not os.path.exists(saving_directory + next_directory3):
-                    os.mkdir(saving_directory + next_directory3)
-                iteration_list = os.listdir(directory + next_directory3)
-                count_list = list(range(1, len(iteration_list)+1))
 
-                for iteration in iteration_list:
-                    file_list = os.listdir(directory + next_directory3 + '/' + iteration)
+def shuffle_and_rename_vid_files(data_directory):
+    for participant in os.listdir(data_directory):
+        if (os.path.isdir(os.path.join(data_directory, participant))):
+            for angle in os.listdir(os.path.join(data_directory, participant)):
+                if (os.path.isdir(os.path.join(data_directory, participant, angle))):
+                    for exercise in os.listdir(os.path.join(data_directory, participant, angle)):
+                        if (os.path.isdir(os.path.join(data_directory, participant, angle, exercise))):
+                            path_list, old_filenames, new_filenames = [], [], []
 
-                    for file in file_list:
-                        if file.endswith('.mp4'):
-                            old_filenames.append(file)
-                            random_number = random.choice(count_list)
-                            count_list.remove(random_number)
-                            new_filename = participant + '_' + angle + '_' + exercise + '_0' + str(random_number) + '.mp4'
-                            new_filenames.append(new_filename)
-                            # print(file, new_filename)
-                            file_path = directory + next_directory3 + '/' + iteration + '/' + file
-                            save_path = saving_directory + next_directory3 + '/' + new_filename
-                            print(file_path)
-                            # print(save_path)
-                            # videoclip = VideoFileClip(file_path)
-                            # new_clip = videoclip.without_audio()
-                            # new_clip.write_videofile(save_path)
-                            command = shlex.split(f'ffmpeg -i {file_path} -c copy -an {save_path}')
-                            subprocess.call(command, shell=True)
-                            data = pd.DataFrame(data={'old_filenames':old_filenames, 'new_filenames':new_filenames})
-                            csv_filename = participant + '_' + angle + '_' + exercise + '.csv'
-                            csv_path = saving_directory + '/' + participant + '/' + csv_filename
-                            data.to_csv(path_or_buf=csv_path, index=False)
-                            print(f'{file} done')
-                            print(f'{'':-^100}')
-                        else:
-                            filename_to_list = file.split('_')
-                            new_csv_filename = filename_to_list[0] + '_' + participant + '_' + angle + '_' + exercise + '_' + iteration + '_' + filename_to_list[-1]
-                            os.rename(file_path, directory + next_directory3 + '/' + iteration + '/' + new_csv_filename)
-                    # break
-                # break
-            # break
+                            for root, dirs, files in os.walk(os.path.join(data_directory, participant, angle, exercise), topdown=False):
+                                for file in files:
+                                    if file.endswith('.mp4'):
+                                        path = os.path.join(root, file)
+                                        path_list.append((path, file))
+
+                            for _ in range(42):
+                                random.shuffle(path_list)
+                            
+                            for ind, (path, old_filename) in enumerate(path_list):
+                                new_filename = old_filename[2:-7] + f'{ind+1:03d}.mp4'
+                                output_root_dir = 'newD' + path[1:(-1*len(new_filename))-7]
+                                os.makedirs(output_root_dir, exist_ok=True)
+                                command = shlex.split(f'ffmpeg -i {path.replace('\\', '/')} -c copy -an {os.path.join(output_root_dir, new_filename).replace('\\', '/')}')
+                                subprocess.call(command, shell=True)
+                                old_filenames.append(old_filename)
+                                new_filenames.append(new_filename)
+
+                            csv_path = os.path.join(data_directory, participant, f'{participant}_{angle}_{exercise}_changelogs.csv')
+                            pd.DataFrame(data={'old_filenames':old_filenames, 'new_filenames':new_filenames}).to_csv(path_or_buf=csv_path, index=False)
+
 
 
 if __name__ == '__main__':
-    main()
+    data_directory = 'data'
+    rename_files(data_directory)
+    shuffle_and_rename_vid_files(data_directory)
+    ...
