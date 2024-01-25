@@ -1,0 +1,2 @@
+to install FFmpeg go to this website for step-by-step guide:
+https://phoenixnap.com/kb/ffmpeg-windows

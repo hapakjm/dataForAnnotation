@@ -1,0 +1,13 @@
+.venv/
+venv/
+.data/
+data/
+.newData/
+newData/
+.test/
+test/
+.tests/
+tests/
+test.py
+tests.py
+shuffleAndRename.py
